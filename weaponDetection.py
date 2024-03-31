@@ -2,6 +2,8 @@ import cv2
 import cvzone
 from ultralytics import YOLO
 import math
+import smtplib
+from email.mime.text import MIMEText
 
 
 cap = cv2.VideoCapture('best.mp4')
@@ -13,6 +15,8 @@ fire = YOLO('fireSomke.pt')
 weaponClass=['Gun', 'Knife']
 fireClass=['fire', 'smoke']
 ####### Opening webcam #######
+fireORSmoke=[]
+weaponList=[]
 while cap.isOpened():
     ret, frame = cap.read()
 
@@ -52,6 +56,30 @@ while cap.isOpened():
             If don't want the confidence level then remove conf
             '''
 
+            ### Send Email ###
+            if weaponClass[cls] == 'Gun' or weaponClass[cls] == 'Knife':
+                if "Danger" in fireORSmoke:
+                    pass
+                else:
+                    fireORSmoke.append('Danger')
+            else:
+                fireORSmoke.clear()
+            if 'Danger' in fireORSmoke:
+                message = MIMEText("Fire & Smoke Detected")
+                message["Subject"] = "Fire & Smoke Detected"
+                message["From"] = "your_email@example.com"
+                message["To"] = "recipient_email@example.com"
+
+                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Use SMTP_SSL for secure connection
+
+                # You might need to enable 'Less secure app access' in your Gmail settings for this to work.
+                # Consider more secure alternatives like app passwords for production use.
+                server.login("your_email@example.com", "your_password")
+
+                server.sendmail(message["From"], message["To"], message.as_string())
+                server.quit()
+            else:
+                pass
     fireDetection = fire(frame, stream=True)
     for r in fireDetection:
         boxes = r.boxes
@@ -86,6 +114,31 @@ while cap.isOpened():
             '''
             If don't want the confidence level then remove conf
             '''
+
+            ### Send Email ###
+            if weaponClass[cls] == 'fire' or weaponClass[cls] == 'smoke':
+                if "Danger" in weaponList:
+                    pass
+                else:
+                    weaponList.append('Danger')
+            else:
+                weaponList.clear()
+            if 'Danger' in weaponList:
+                message = MIMEText("Weapon Detected")
+                message["Subject"] = "Weapon Detected"
+                message["From"] = "your_email@example.com"
+                message["To"] = "recipient_email@example.com"
+
+                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)  # Use SMTP_SSL for secure connection
+
+                # You might need to enable 'Less secure app access' in your Gmail settings for this to work.
+                # Consider more secure alternatives like app passwords for production use.
+                server.login("your_email@example.com", "your_password")
+
+                server.sendmail(message["From"], message["To"], message.as_string())
+                server.quit()
+            else:
+                pass
 
     if ret:
         vid_image = cv2.resize(frame, (600, 400))
